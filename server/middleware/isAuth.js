@@ -12,13 +12,14 @@ const isAuth = async (req, res, next) => {
         });
     }
     let verifyToken = await jwt.verify(token , process.env.MYSECRET)
-    if (!verifyToken){
+    if (!verifyToken?.userId){
         return res.status(400).json({
             success: false,
             message : "Not Authorized"
         })
     }
-    req.userId = verifyToken.userId;
+    // console.log(verifyToken.userId)
+    req.id = verifyToken.userId;
     next();
   } catch (error) {
     console.log("Error in Auth function : ", error);

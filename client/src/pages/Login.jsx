@@ -2,12 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useDispatch,  } from "react-redux";
+import { setUserData } from "../redux/userSlice";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   let navigate = useNavigate();
   let [email, setEmail] = useState("");
   let [password, setPassword] = useState("");
   let [loading , setLoading] = useState("")
+  let dispatch = useDispatch()
+  
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,13 +23,15 @@ export default function LoginPage() {
         { email, password },
         { withCredentials: true }
       );
-      console.log(result);
+      dispatch(setUserData(result.data))
       setEmail("")
       setPassword("")
       setLoading(false)
+      toast.success("Logged In Successfully")
     } catch (error) {
       console.log(error);
       setLoading(false)
+      toast.error(error.response.data.message)
     }
   };
   const leftRef = useRef(null);

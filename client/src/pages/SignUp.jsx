@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
+import {useDispatch, } from "react-redux"
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { setUserData } from "../redux/userSlice";
 
 export default function SignupPage() {
   let navigate = useNavigate();
@@ -10,6 +12,7 @@ export default function SignupPage() {
   let [email, setEmail] = useState("");
   let [password, setPassword] = useState("");
   let [loading , setLoading] = useState(false)
+  let dispatch = useDispatch()
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -21,7 +24,7 @@ export default function SignupPage() {
         { fullname, email, password },
         { withCredentials: true }
       );
-      console.log(result);
+      dispatch(setUserData(result.data))
       setEmail("")
       setPassword("")
       setLoading(false)
