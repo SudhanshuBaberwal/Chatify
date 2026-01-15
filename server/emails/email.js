@@ -1,5 +1,5 @@
 import transporter from "./nodemailer.js";
-import { VERIFICATION_EMAIL_TEMPLATE } from "./emailTemplates.js";
+import { PASSWORD_RESET_SUCCESS_TEMPLATE, VERIFICATION_EMAIL_TEMPLATE, WELCOME_EMAIL } from "./emailTemplates.js";
 
 export const verificationEmail = async (userEmail, code) => {
   try {
@@ -37,3 +37,30 @@ export const passwordResetEmail = async (url, email) => {
     console.log("Error in passwordResetEmail", error);
   }
 };
+
+export const passwordResetSuccessEmail = async (email) => {
+  try {
+    const mailOptions = await transporter.sendMail({
+      from : "24bcs147@iiitdwd.ac.in",
+      to : email,
+      subject : "Password Reset Success Email",
+      html : PASSWORD_RESET_SUCCESS_TEMPLATE
+    })
+    console.log("Email send successfully ")
+  } catch (error) {
+    console.log("Error in passwrodresetsuccessEmail function : ", error)
+  }
+}
+
+export const sendWelcomeEmail = async (email, username) => {
+  try {
+    const mailOptions = await transporter.sendMail({
+      from : "24bcs147@iiitdwd.ac.in",
+      to : email,
+      subject : "Welcome Chatify",
+      html : WELCOME_EMAIL.replace("{{name}}", username)  
+    })
+  } catch (error) {
+    
+  }
+}

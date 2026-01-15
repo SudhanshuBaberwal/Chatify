@@ -2,7 +2,7 @@ import { generateToken } from "../config/token.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import generateVerificationCode from "../utils/GenerateCode.js";
-import { passwordResetEmail, verificationEmail } from "../emails/email.js";
+import { passwordResetEmail, passwordResetSuccessEmail, sendWelcomeEmail, verificationEmail } from "../emails/email.js";
 import crypto from "crypto"
 
 export const signup = async (req, res) => {
@@ -140,6 +140,7 @@ export const verifyEmail = async (req, res) => {
     user.isVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpiresAt = undefined;
+    await sendWelcomeEmail(user.email , user.fullname)
     return res.status(200).json({
       success: true,
       message: "User Verified Successfully",
@@ -187,5 +188,38 @@ export const forgotPassword = async (req , res) => {
   } catch (error) {
     console.log("Error in forgotPassword Function : ", error)
     return res.status(500).json({success : false , message : error.message})
+  }
+}
+
+export const resetPassword = async (req , res) => {
+  const {token} = req.params;
+  const {password} = req.body;
+  try {
+    if (!token){
+      return res.status(400).json({success : false , message : "UnAuthorized User"})
+    }
+    if (!password){
+      return res.status(400).json({success : false , message : "All fields are required"})
+    }
+    const user = await User.findOne({
+      passwordResetToken : token
+    })
+
+    if (!user){
+      return res.status(400).json({success :false , message : "User Not Found"})
+    }
+    const hashedPassword = await bcrypt.hash(password , 10);
+    user.password = hashedPassword;
+    user.resetPasswordExpiresAt = undefined
+    user.passwordResetToken = undefined
+    await user.save()
+
+    // sent password reset success email
+    await passwordResetSuccessEmail(user.email)
+
+    return res.status(200).json({success : true , message : "Password Reset Successfully"})
+  } catch (error) {
+    console.log("Error in resetPassword function : ", error)
+    return res.status({success :false , message : error.message})
   }
 }
