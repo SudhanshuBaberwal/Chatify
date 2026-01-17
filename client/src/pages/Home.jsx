@@ -1,99 +1,108 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { gsap } from "gsap";
 import Sidebar from "../components/Sidebar";
 import MessageArea from "../components/MessageArea";
 
-// --- DUMMY DATA ---
-const DUMMY_CONTACTS = [
-    { 
-        _id: "1", 
-        name: "Alice Verse", 
-        role: "Quantum Architect",
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80", 
-        status: "online", 
-        time: "10:42 AM", 
-        lastMessage: "The rendering coordinates are set." 
-    },
-    { 
-        _id: "2", 
-        name: "Bob Cyber", 
-        role: "System Admin",
-        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80", 
-        status: "offline", 
-        time: "09:15 AM", 
-        lastMessage: "Server reboot scheduled." 
-    },
-    { 
-        _id: "3", 
-        name: "Eve Matrix", 
-        role: "Security Chief",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80", 
-        status: "online", 
-        time: "Yesterday", 
-        lastMessage: "Unauthorized access blocked." 
-    }
+
+// --- DATA ---
+const USERS = [
+    { id: 1, name: "Elara Vance", role: "Visual Director", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop", status: "online", msg: "Rendering the final assets now.", time: "10:42 AM" },
+    { id: 2, name: "Kaelen Thorne", role: "Sys Admin", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop", status: "idle", msg: "Server load is at 98%.", time: "09:15 AM" },
+    { id: 3, name: "Nova Script", role: "AI Logic", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop", status: "online", msg: "Algorithm updated.", time: "Yesterday" },
+    { id: 4, name: "Marcus Webb", role: "Frontend Lead", avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150&h=150&fit=crop", status: "offline", msg: "Check the PR when you can.", time: "Mon" },
 ];
 
-const INITIAL_MESSAGES = [
-    { senderId: "1", text: "Commander, secure channel established.", timestamp: "10:30 AM" },
-    { senderId: "me", text: "Affirmative. Send the encryption keys.", timestamp: "10:32 AM" },
-];
-
-// --- MAIN COMPONENT ---
 const Home = () => {
-    const [activeContactId, setActiveContactId] = useState(null); // No chat selected initially
-    const [messages, setMessages] = useState([]);
-    
-    // Current User Profile (You/Me)
-    const currentUser = {
-        name: "Commander",
-        avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80"
-    };
+    const [selectedUser, setSelectedUser] = useState(null);
+    const mainRef = useRef(null);
 
-    // --- HANDLERS ---
-    const handleSelectContact = (id) => {
-        setActiveContactId(id);
-        // In a real app, fetch messages from DB here. 
-        // For now, we load dummy data:
-        setMessages([
-            { senderId: id, text: `Connection verified with ${DUMMY_CONTACTS.find(c=>c._id === id).name}.`, timestamp: "Just now" },
-            ...INITIAL_MESSAGES
-        ]);
-    };
-
-    const handleSendMessage = (text) => {
-        const newMessage = { 
-            senderId: "me", 
-            text, 
-            timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
-        };
-        setMessages((prev) => [...prev, newMessage]);
-    };
-
-    // Helper to get the full object of the active user
-    const activeContact = DUMMY_CONTACTS.find((c) => c._id === activeContactId);
+    // --- GSAP ENTRANCE ANIMATION ---
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            gsap.fromTo(".glass-panel", 
+                { opacity: 0, y: 20, scale: 0.98 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.2, ease: "power3.out" }
+            );
+        }, mainRef);
+        return () => ctx.revert();
+    }, []);
 
     return (
-        /* FIX: Added 'flex h-screen w-full bg-black overflow-hidden' 
-           so they sit side-by-side and take up the full window. */
-        <div className="flex h-screen w-full bg-black overflow-hidden font-sans">
+        <div ref={mainRef} className="relative w-full h-[100dvh] bg-[#030014] text-white overflow-hidden font-sans selection:bg-purple-500/30">
             
-            <Sidebar 
-                contacts={DUMMY_CONTACTS}
-                activeContactId={activeContactId}
-                onSelectContact={handleSelectContact}
-                currentUser={currentUser}
-            />
+            {/* --- 1. CINEMATIC BACKGROUND --- */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                {/* Moving Orbs */}
+                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-purple-600/20 rounded-full blur-[120px] animate-orbit-slow mix-blend-screen" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-indigo-600/20 rounded-full blur-[120px] animate-orbit-reverse mix-blend-screen" />
+                <div className="absolute top-[40%] left-[40%] w-[40vw] h-[40vw] bg-cyan-600/10 rounded-full blur-[100px] animate-pulse-slow mix-blend-screen" />
+                
+                {/* Noise Texture (The "Premium" Feel) */}
+                <div className="absolute inset-0 opacity-[0.04]" 
+                     style={{ backgroundImage: `url("https://grainy-gradients.vercel.app/noise.svg")` }} 
+                />
+            </div>
 
-            <MessageArea 
-                activeContact={activeContact}
-                messages={messages}
-                onSend={handleSendMessage}
-            />
+            {/* --- 2. GLASS UI LAYOUT --- */}
+            <div className="relative z-10 w-full h-full flex p-0 md:p-6 md:gap-6">
+                
+                {/* SIDEBAR WRAPPER */}
+                <div className={`
+                    w-full md:w-[380px] lg:w-[420px] h-full flex flex-col 
+                    transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
+                    ${selectedUser ? 'hidden md:flex' : 'flex'}
+                `}>
+                    {/* The "Glass" Container */}
+                    <div className="glass-panel w-full h-full md:rounded-[32px] overflow-hidden bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] shadow-[0_20px_40px_rgba(0,0,0,0.4)] relative">
+                        {/* Internal Reflection Glow */}
+                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50" />
+                        
+                        <Sidebar 
+                            users={USERS} 
+                            selectedUser={selectedUser} 
+                            onSelect={setSelectedUser} 
+                        />
+                    </div>
+                </div>
 
+                {/* CHAT WRAPPER */}
+                <div className={`
+                    flex-1 h-full flex-col relative
+                    transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
+                    ${!selectedUser ? 'hidden md:flex' : 'flex'}
+                `}>
+                    <div className="glass-panel w-full h-full md:rounded-[32px] overflow-hidden bg-[#0a0a0a]/40 backdrop-blur-3xl border border-white/[0.08] shadow-[0_20px_40px_rgba(0,0,0,0.4)] relative">
+                        {/* Internal Reflection Glow */}
+                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
+                        
+                        <MessageArea 
+                            user={selectedUser} 
+                            onBack={() => setSelectedUser(null)} 
+                        />
+                    </div>
+                </div>
+
+            </div>
+
+            {/* --- ANIMATIONS STYLE --- */}
+            <style>{`
+                @keyframes orbit-slow {
+                    0% { transform: translate(0, 0) rotate(0deg); }
+                    33% { transform: translate(30px, 50px) rotate(10deg); }
+                    66% { transform: translate(-20px, 20px) rotate(-5deg); }
+                    100% { transform: translate(0, 0) rotate(0deg); }
+                }
+                @keyframes orbit-reverse {
+                    0% { transform: translate(0, 0) scale(1); }
+                    50% { transform: translate(-50px, -30px) scale(1.1); }
+                    100% { transform: translate(0, 0) scale(1); }
+                }
+                .animate-orbit-slow { animation: orbit-slow 20s ease-in-out infinite; }
+                .animate-orbit-reverse { animation: orbit-reverse 25s ease-in-out infinite; }
+                .animate-pulse-slow { animation: orbit-reverse 15s ease-in-out infinite; }
+            `}</style>
         </div>
     );
-}
+};
 
 export default Home;
-
-

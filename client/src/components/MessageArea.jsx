@@ -1,227 +1,184 @@
-import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
-import gsap from "gsap";
-import { Send, Paperclip, Phone, Video, MoreVertical, Smile, Mic, Image as ImageIcon } from "lucide-react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { gsap } from "gsap";
+import { Send, Paperclip, ArrowLeft, Phone, Video, Info, Mic, Image as ImageIcon } from "lucide-react";
 
-const MessageArea = ({ 
-    activeContact, 
-    messages = [], 
-    onSend 
-}) => {
-    const messagesEndRef = useRef(null);
+const INITIAL_DATA = [
+    { id: 1, text: "Analyzing the grid patterns now.", sender: "them", time: "10:30 AM" },
+    { id: 2, text: "Can you adjust the bloom intensity on the rendering engine?", sender: "me", time: "10:32 AM" },
+    { id: 3, text: "Affirmative. Compiling the shaders. It should look cleaner.", sender: "them", time: "10:33 AM" },
+    { id: 4, text: "Send me the preview when done.", sender: "me", time: "10:35 AM" },
+];
+
+const MessageArea = ({ user, onBack }) => {
+    const [messages, setMessages] = useState(INITIAL_DATA);
+    const [input, setInput] = useState("");
+    const scrollRef = useRef(null);
     const containerRef = useRef(null);
-    const [text, setText] = useState("");
-    const [isFocused, setIsFocused] = useState(false);
 
-    // --- 1. GSAP: Message Entrance Animation ---
+    // --- ANIMATION: New Messages Entrance ---
     useLayoutEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        
-        // Find the last message bubble added
-        const bubbles = containerRef.current?.querySelectorAll('.msg-bubble');
-        if (bubbles && bubbles.length > 0) {
-            const lastBubble = bubbles[bubbles.length - 1];
-            
-            gsap.fromTo(lastBubble, 
-                { opacity: 0, y: 20, scale: 0.95 },
-                { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.7)" }
+        if (!user) return;
+        const ctx = gsap.context(() => {
+            gsap.fromTo(".chat-bubble", 
+                { opacity: 0, y: 30, scale: 0.9 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.05, ease: "back.out(1.2)" }
             );
-        }
+        }, containerRef);
+        return () => ctx.revert();
+    }, [user]);
+
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    const handleSubmit = (e) => {
+    const handleSend = (e) => {
         e.preventDefault();
-        if (text.trim() && onSend) {
-            onSend(text);
-            setText("");
-        }
+        if (!input.trim()) return;
+        setMessages([...messages, { id: Date.now(), text: input, sender: "me", time: "Now" }]);
+        setInput("");
+        
+        // Quick snap animation for the new message
+        setTimeout(() => {
+            const bubbles = document.querySelectorAll('.chat-bubble');
+            const last = bubbles[bubbles.length - 1];
+            gsap.fromTo(last, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "elastic.out(1, 0.7)" });
+        }, 10);
     };
 
+    if (!user) return (
+        <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
+            <div className="relative mb-8">
+                <div className="absolute inset-0 bg-indigo-500/30 blur-[40px] rounded-full animate-pulse" />
+                <div className="relative w-24 h-24 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center backdrop-blur-xl">
+                    <span className="text-4xl">✨</span>
+                </div>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Welcome to Flux</h2>
+            <p className="text-white/40 max-w-sm font-light">Select a neural link from the sidebar to establish a secure connection.</p>
+        </div>
+    );
+
     return (
-        <div className="flex-1 h-full relative flex flex-col bg-[#050505] overflow-hidden font-sans isolate">
+        <div className="flex flex-col h-full w-full relative">
             
-            {/* --- BACKGROUND: FLUID AURORA --- */}
-            {/* These divs move around to create the living background effect */}
-            <div className="absolute inset-0 -z-10 overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-900/20 blur-[100px] animate-blob mix-blend-screen"></div>
-                <div className="absolute top-[20%] right-[-10%] w-[40%] h-[60%] rounded-full bg-indigo-900/20 blur-[100px] animate-blob animation-delay-2000 mix-blend-screen"></div>
-                <div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[100px] animate-blob animation-delay-4000 mix-blend-screen"></div>
-                
-                {/* Grain Texture Overlay for that "Premium" feel */}
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("https://grainy-gradients.vercel.app/noise.svg")` }}></div>
-            </div>
-
             {/* --- HEADER --- */}
-            <header className="h-[80px] px-8 flex items-center justify-between border-b border-white/5 bg-white/[0.02] backdrop-blur-xl z-20">
-                {activeContact ? (
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <img src={activeContact.avatar} alt="" className="w-11 h-11 rounded-full object-cover ring-2 ring-white/10" />
-                            {activeContact.status === 'online' && (
-                                <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-[#4ade80] border-2 border-black rounded-full shadow-[0_0_10px_#4ade80]"></div>
-                            )}
-                        </div>
-                        <div>
-                            <h2 className="text-white font-semibold text-[17px] tracking-tight">{activeContact.name}</h2>
-                            <p className="text-white/40 text-xs font-medium">
-                                {activeContact.status === 'online' ? 'Active Now' : 'Offline'}
-                            </p>
-                        </div>
+            <div className="h-20 px-6 flex items-center justify-between border-b border-white/5 bg-white/[0.01] backdrop-blur-md z-20">
+                <div className="flex items-center gap-4">
+                    <button onClick={onBack} className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-white/70 transition-colors">
+                        <ArrowLeft size={20} />
+                    </button>
+                    
+                    <div className="relative">
+                        <img src={user.avatar} className="w-11 h-11 rounded-full object-cover ring-2 ring-white/10" alt="" />
+                        {user.status === 'online' && (
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-[3px] border-[#0a0a0a] rounded-full shadow-lg"></div>
+                        )}
                     </div>
-                ) : (
-                    <div className="flex items-center gap-4 opacity-30">
-                        <div className="w-10 h-10 bg-white/10 rounded-full animate-pulse"></div>
-                        <div className="h-4 w-32 bg-white/10 rounded animate-pulse"></div>
+                    
+                    <div>
+                        <h3 className="font-bold text-white text-[17px] tracking-tight leading-tight">{user.name}</h3>
+                        <p className="text-xs text-indigo-300 font-medium opacity-80">{user.role}</p>
                     </div>
-                )}
+                </div>
 
-                {activeContact && (
-                    <div className="flex items-center gap-2">
-                        <button className="w-10 h-10 flex items-center justify-center rounded-xl text-white/50 hover:bg-white/5 hover:text-white transition-all"><Phone size={20} /></button>
-                        <button className="w-10 h-10 flex items-center justify-center rounded-xl text-white/50 hover:bg-white/5 hover:text-white transition-all"><Video size={20} /></button>
-                        <button className="w-10 h-10 flex items-center justify-center rounded-xl text-white/50 hover:bg-white/5 hover:text-white transition-all"><MoreVertical size={20} /></button>
-                    </div>
-                )}
-            </header>
-
-
-            {/* --- MESSAGES LIST --- */}
-            <div 
-                ref={containerRef}
-                className="flex-1 overflow-y-auto p-6 space-y-6 z-10 custom-scrollbar"
-            >
-                {!activeContact ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center">
-                        <div className="w-20 h-20 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-3xl flex items-center justify-center mb-6 border border-white/5 shadow-2xl backdrop-blur-sm">
-                            <span className="text-3xl">👋</span>
-                        </div>
-                        <h3 className="text-xl font-medium text-white mb-2">Welcome Back</h3>
-                        <p className="text-white/40 text-sm max-w-xs">Select a conversation from the sidebar to start chatting.</p>
-                    </div>
-                ) : (
-                    messages.map((msg, idx) => {
-                        const isMe = msg.senderId === "me";
-                        const showAvatar = !isMe && (idx === messages.length - 1 || messages[idx + 1]?.senderId === "me");
-
-                        return (
-                            <div key={idx} className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'} group msg-bubble`}>
-                                
-                                {/* Avatar (Only for received messages) */}
-                                {!isMe && (
-                                    <div className={`w-8 h-8 mr-3 flex-shrink-0 ${showAvatar ? 'opacity-100' : 'opacity-0'}`}>
-                                        <img src={activeContact.avatar} className="w-full h-full rounded-full object-cover" alt="" />
-                                    </div>
-                                )}
-
-                                <div className={`max-w-[65%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                                    {/* The Bubble */}
-                                    <div className={`
-                                        px-5 py-3.5 relative text-[15px] leading-relaxed shadow-sm
-                                        ${isMe 
-                                            ? 'bg-gradient-to-br from-[#6366f1] to-[#4f46e5] text-white rounded-[20px] rounded-br-none shadow-[0_8px_20px_-5px_rgba(79,70,229,0.4)]' 
-                                            : 'bg-white/10 backdrop-blur-md text-gray-100 border border-white/5 rounded-[20px] rounded-bl-none'
-                                        }
-                                    `}>
-                                        {msg.text}
-                                    </div>
-                                    
-                                    {/* Timestamp */}
-                                    <span className={`text-[10px] mt-1.5 opacity-0 group-hover:opacity-50 transition-opacity text-gray-400 font-medium select-none`}>
-                                        {msg.timestamp || "Now"}
-                                    </span>
-                                </div>
-                            </div>
-                        )
-                    })
-                )}
-                <div ref={messagesEndRef} />
+                <div className="flex items-center gap-2">
+                    <button className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all"><Phone size={18} /></button>
+                    <button className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all"><Video size={18} /></button>
+                    <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
+                    <button className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all"><Info size={18} /></button>
+                </div>
             </div>
 
+            {/* --- CHAT AREA --- */}
+            <div ref={containerRef} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar scroll-smooth relative z-10">
+                <div className="text-center py-6">
+                    <div className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] text-white/30 uppercase tracking-widest font-semibold">
+                        Today
+                    </div>
+                </div>
+
+                {messages.map((msg) => {
+                    const isMe = msg.sender === "me";
+                    return (
+                        <div key={msg.id} className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'} chat-bubble group`}>
+                            {/* Avatar for Them */}
+                            {!isMe && (
+                                <img src={user.avatar} className="w-8 h-8 rounded-full object-cover mr-3 self-end mb-1 opacity-70" alt="" />
+                            )}
+
+                            <div className={`max-w-[70%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                                <div className={`
+                                    px-6 py-3.5 text-[15px] leading-relaxed relative shadow-lg backdrop-blur-md
+                                    ${isMe 
+                                        ? 'bg-gradient-to-tr from-indigo-600 to-purple-600 text-white rounded-[24px] rounded-br-sm border border-white/10' 
+                                        : 'bg-white/5 text-gray-100 rounded-[24px] rounded-bl-sm border border-white/5'
+                                    }
+                                `}>
+                                    {msg.text}
+                                </div>
+                                <span className={`text-[10px] mt-2 opacity-0 group-hover:opacity-40 transition-opacity text-white font-medium px-1`}>
+                                    {msg.time}
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })}
+                <div ref={scrollRef} />
+            </div>
 
             {/* --- INPUT AREA --- */}
             <div className="p-6 pt-2 z-20">
                 <form 
-                    onSubmit={handleSubmit}
-                    className={`
-                        relative w-full flex items-center gap-3 p-2 pl-4 pr-2
-                        bg-[#0f0f12]/80 backdrop-blur-2xl
-                        border transition-all duration-300 rounded-[24px]
-                        ${isFocused ? 'border-indigo-500/50 shadow-[0_0_40px_-10px_rgba(99,102,241,0.2)]' : 'border-white/10 shadow-lg'}
-                    `}
+                    onSubmit={handleSend}
+                    className="relative flex items-center gap-2 p-2 bg-[#050505]/60 backdrop-blur-xl border border-white/10 rounded-[24px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] group focus-within:border-indigo-500/50 focus-within:shadow-[0_0_30px_-5px_rgba(79,70,229,0.2)] transition-all duration-300"
                 >
-                    {/* Attachments */}
-                    <button type="button" className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-all">
-                        <Paperclip size={18} />
+                    <button type="button" className="p-3 text-white/30 hover:text-white hover:bg-white/10 rounded-full transition-all">
+                        <Paperclip size={20} />
                     </button>
-                    <button type="button" className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-all">
-                        <ImageIcon size={18} />
+                    <button type="button" className="p-3 text-white/30 hover:text-white hover:bg-white/10 rounded-full transition-all hidden sm:block">
+                        <ImageIcon size={20} />
                     </button>
 
-                    {/* Text Field */}
                     <input 
                         type="text" 
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        placeholder={activeContact ? "Write a message..." : "Select a chat"}
-                        disabled={!activeContact}
-                        className="flex-1 bg-transparent text-white placeholder-gray-500 text-[15px] focus:outline-none h-11"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Type a message..." 
+                        className="flex-1 bg-transparent text-white placeholder-white/20 text-[15px] h-10 focus:outline-none px-2"
                     />
 
-                    {/* Right Actions */}
-                    <div className="flex items-center gap-2">
-                        {!text.trim() && (
-                            <button type="button" className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-all">
-                                <Mic size={20} />
-                            </button>
-                        )}
-                        <button 
-                            type="submit" 
-                            disabled={!text.trim()}
-                            className={`
-                                h-10 w-10 flex items-center justify-center rounded-full text-white transition-all duration-200
-                                ${text.trim() 
-                                    ? 'bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 rotate-0 scale-100' 
-                                    : 'bg-transparent text-gray-600 rotate-90 scale-0 opacity-0 hidden'
-                                }
-                            `}
-                        >
-                            <Send size={18} className="ml-0.5" />
+                    {!input.trim() && (
+                        <button type="button" className="p-3 text-white/30 hover:text-white hover:bg-white/10 rounded-full transition-all">
+                            <Mic size={20} />
                         </button>
-                    </div>
+                    )}
+
+                    <button 
+                        type="submit" 
+                        disabled={!input.trim()}
+                        className={`
+                            h-11 w-11 flex items-center justify-center rounded-full text-white transition-all duration-300
+                            ${input.trim() 
+                                ? 'bg-indigo-600 hover:bg-indigo-500 shadow-lg scale-100 rotate-0' 
+                                : 'bg-white/5 text-white/20 scale-90 rotate-90 cursor-not-allowed hidden sm:flex'
+                            }
+                        `}
+                    >
+                        <Send size={18} className={input.trim() ? "translate-x-0.5 translate-y-0.5" : ""} />
+                    </button>
                 </form>
                 
-                <div className="text-center mt-2">
-                    <p className="text-[10px] text-gray-600 flex items-center justify-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-green-500/20 flex items-center justify-center"><span className="w-1 h-1 bg-green-500 rounded-full"></span></span>
-                        End-to-end encrypted
-                    </p>
-                </div>
+                <p className="text-center text-[10px] text-white/20 mt-3 flex items-center justify-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></span>
+                    Encrypted via Quantum Protocol
+                </p>
             </div>
 
-
-            {/* --- GLOBAL STYLES FOR ANIMATION & SCROLL --- */}
             <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 100px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
-
-                @keyframes blob {
-                    0% { transform: translate(0px, 0px) scale(1); }
-                    33% { transform: translate(30px, -50px) scale(1.1); }
-                    66% { transform: translate(-20px, 20px) scale(0.9); }
-                    100% { transform: translate(0px, 0px) scale(1); }
-                }
-                .animate-blob {
-                    animation: blob 10s infinite;
-                }
-                .animation-delay-2000 {
-                    animation-delay: 2s;
-                }
-                .animation-delay-4000 {
-                    animation-delay: 4s;
-                }
             `}</style>
         </div>
     );
