@@ -3,33 +3,35 @@ import { Search, Command, MoreVertical, Bell, LogOut } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import setOtherUsers from "../redux/userSlice"
-import setUserData from "../redux/userSlice"
+import setOtherUsers, { setSelectedUsers } from "../redux/userSlice";
+import setUserData from "../redux/userSlice";
+import otherUsers from "../redux/userSlice";
 
 const Sidebar = ({ users, selectedUser, onSelect }) => {
+  const { userData, otherUsers } = useSelector((state) => state.user);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const dispatch = useDispatch()
-
-  const { userData } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   const filtered = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase())
+    u.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleLogout = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       const result = await axios.get("http://localhost:3000/api/auth/logout", {
         withCredentials: true,
       });
-      dispatch(setUserData(null))
-      dispatch(setOtherUsers(null))
-      navigate("/login")
+      dispatch(setUserData(null));
+      dispatch(setOtherUsers(null));
+      navigate("/login");
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   };
+  console.log(otherUsers.users);
+  // console.log(Array.isArray(otherUsers.users));
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -83,13 +85,14 @@ const Sidebar = ({ users, selectedUser, onSelect }) => {
           </span>
         </div>
 
-        {filtered.map((u) => {
-          const isActive = selectedUser?.id === u.id;
-          return (
-            <div
-              key={u.id}
-              onClick={() => onSelect(u)}
-              className={`
+        {Array.isArray(otherUsers.users) &&
+          otherUsers.users.map((u) => {
+            const isActive = selectedUser?.id === u.id;
+            return (
+              <div
+                key={u._id}
+                onClick={() => dispatch(setSelectedUsers(u))}
+                className={`
                                 group relative p-4 rounded-2xl cursor-pointer transition-all duration-300
                                 border border-transparent
                                 ${
@@ -98,21 +101,21 @@ const Sidebar = ({ users, selectedUser, onSelect }) => {
                                     : "hover:bg-white/[0.03] hover:border-white/[0.05]"
                                 }
                             `}
-            >
-              {/* Active Neon Glow Bar */}
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 h-10 w-1 bg-gradient-to-b from-indigo-400 to-purple-400 rounded-r-full shadow-[0_0_15px_#818cf8]" />
-              )}
+              >
+                {/* Active Neon Glow Bar */}
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 h-10 w-1 bg-gradient-to-b from-indigo-400 to-purple-400 rounded-r-full shadow-[0_0_15px_#818cf8]" />
+                )}
 
-              <div className="flex items-center gap-4">
-                <div className="relative shrink-0">
-                  <img
-                    src={u.avatar}
-                    alt=""
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-white/5 group-hover:ring-white/10 transition-all"
-                  />
-                  <div
-                    className={`
+                <div className="flex items-center gap-4">
+                  <div className="relative shrink-0">
+                    <img
+                      src={u.image}
+                      alt=""
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-white/5 group-hover:ring-white/10 transition-all"
+                    />
+                    <div
+                      className={`
                                         absolute bottom-0 right-0 w-3.5 h-3.5 border-[3px] border-[#131313] rounded-full
                                         ${
                                           u.status === "online"
@@ -120,40 +123,40 @@ const Sidebar = ({ users, selectedUser, onSelect }) => {
                                             : "bg-gray-500"
                                         }
                                     `}
-                  ></div>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center mb-1">
-                    <h3
-                      className={`font-semibold text-[15px] ${
-                        isActive ? "text-white" : "text-gray-200"
-                      }`}
-                    >
-                      {u.name}
-                    </h3>
-                    <span
-                      className={`text-[11px] ${
-                        isActive ? "text-indigo-200" : "text-white/30"
-                      }`}
-                    >
-                      {u.time}
-                    </span>
+                    ></div>
                   </div>
-                  <p
-                    className={`text-sm truncate ${
-                      isActive
-                        ? "text-white/80"
-                        : "text-white/40 group-hover:text-white/60"
-                    } transition-colors`}
-                  >
-                    {u.msg}
-                  </p>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-1">
+                      <h3
+                        className={`font-semibold text-[15px] ${
+                          isActive ? "text-white" : "text-gray-200"
+                        }`}
+                      >
+                        {u.fullname}
+                      </h3>
+                      <span
+                        className={`text-[11px] ${
+                          isActive ? "text-indigo-200" : "text-white/30"
+                        }`}
+                      >
+                        {u.time}
+                      </span>
+                    </div>
+                    <p
+                      className={`text-sm truncate ${
+                        isActive
+                          ? "text-white/80"
+                          : "text-white/40 group-hover:text-white/60"
+                      } transition-colors`}
+                    >
+                      {u.msg}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
       {/* User Profile Footer */}
@@ -177,8 +180,9 @@ const Sidebar = ({ users, selectedUser, onSelect }) => {
               <span className="text-[10px] text-emerald-400">Online</span>
             </div>
           </div>
-          <LogOut onClick={handleLogout}
-            size={16} 
+          <LogOut
+            onClick={handleLogout}
+            size={16}
             className="text-white/30 group-hover:text-white"
           />
         </div>
