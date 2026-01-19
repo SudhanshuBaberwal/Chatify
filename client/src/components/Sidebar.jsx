@@ -30,7 +30,7 @@ const Sidebar = ({ users, selectedUser, onSelect }) => {
       console.log(error);
     }
   };
-  console.log(otherUsers.users);
+  // console.log(otherUsers.users);
   // console.log(Array.isArray(otherUsers.users));
 
   return (
@@ -85,9 +85,9 @@ const Sidebar = ({ users, selectedUser, onSelect }) => {
           </span>
         </div>
 
-        {Array.isArray(otherUsers.users) &&
+        {Array.isArray(otherUsers?.users) &&
           otherUsers.users.map((u) => {
-            const isActive = selectedUser?.id === u.id;
+            const isActive = selectedUser?.id === u._id;
             return (
               <div
                 key={u._id}

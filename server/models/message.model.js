@@ -19,10 +19,7 @@ const messageSchema = new mongoose.Schema({
     type : String,
     default : ""
   },
-  video : {
-    type : String,
-    default : ""
-  }
+  
 } , {timestamps : true});
 
 const Message = mongoose.model("Message" , messageSchema)

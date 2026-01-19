@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import Sidebar from "../components/Sidebar";
 import MessageArea from "../components/MessageArea";
+import getMessages from "../customHooks/getMessages";
 
 
 // --- DATA ---
@@ -26,7 +27,7 @@ const Home = () => {
         }, mainRef);
         return () => ctx.revert();
     }, []);
-
+    getMessages()
     return (
         <div ref={mainRef} className="relative w-full h-[100dvh] bg-[#030014] text-white overflow-hidden font-sans selection:bg-purple-500/30">
             

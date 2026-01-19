@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import EmojiPicker from "emoji-picker-react";
-
+import { setMessages } from "../redux/message.Slice";
 // --- IMPORT NEW COMPONENTS ---
 import SenderMessage from "./SenderMessage";
 import ReceiverMessage from "./ReceiverMessage";
@@ -46,13 +46,16 @@ const INITIAL_DATA = [
   },
 ];
 
-const MessageArea = ({ onBack }) => {
+const MessageArea = ({onBack}) => {
+  
   // Redux
-  const { selectedUsers } = useSelector((state) => state.user);
+  const { selectedUsers , userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  // console.log(selectedUsers._id)
 
   // State
-  const [messages, setMessages] = useState(INITIAL_DATA);
+  // const [messages, setMessages] = useState(INITIAL_DATA);
+  let { messages } = useSelector((state) => state.message);
   const [input, setInput] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [frontendImage, setFrontendImage] = useState(null);
@@ -86,15 +89,15 @@ const MessageArea = ({ onBack }) => {
     if (!input.trim() && !frontendImage) return;
 
     // 1. Update UI immediately (Optimistic UI)
-    const newMessage = {
-      id: Date.now(),
-      text: input,
-      sender: "me",
-      time: "Now",
-      image: frontendImage, // Pass image to message object (ensure SenderMessage handles this!)
-    };
+    // const newMessage = {
+    //   id: Date.now(),
+    //   text: input,
+    //   sender: "me",
+    //   time: "Now",
+    //   image: frontendImage,
+    // };
 
-    setMessages((prev) => [...prev, newMessage]);
+    // setMessages((prev) => [...prev, newMessage]);
 
     // 2. Clear Input States
     setInput("");
@@ -108,12 +111,16 @@ const MessageArea = ({ onBack }) => {
       if (backendImage) {
         formData.append("image", backendImage);
       }
-      // Uncomment to enable API
-      // await axios.post(
-      //   `http://localhost:3000/api/message/send/${selectedUsers._id}`,
-      //   formData,
-      //   { withCredentials: true },
-      // );
+      let res = await axios.post(
+        `http://localhost:3000/api/message/send/${selectedUsers._id}`,
+        formData,
+        { withCredentials: true },
+      );
+      // console.log(res.data.messages)
+      dispatch(setMessages([...messages, res.data]));
+      setInput("");
+      setFrontendImage(null);
+      setBackendImage(null);
     } catch (error) {
       console.error("Failed to send", error);
     }
@@ -133,24 +140,24 @@ const MessageArea = ({ onBack }) => {
   };
 
   // Animation on User Change
-  useLayoutEffect(() => {
-    if (!selectedUsers) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".chat-bubble",
-        { opacity: 0, y: 20, scale: 0.95 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.4,
-          stagger: 0.05,
-          ease: "power2.out",
-        },
-      );
-    }, containerRef);
-    return () => ctx.revert();
-  }, [selectedUsers]);
+  // useLayoutEffect(() => {
+  //   if (!selectedUsers) return;
+  //   const ctx = gsap.context(() => {
+  //     gsap.fromTo(
+  //       ".chat-bubble",
+  //       { opacity: 0, y: 20, scale: 0.95 },
+  //       {
+  //         opacity: 1,
+  //         y: 0,
+  //         scale: 1,
+  //         duration: 0.4,
+  //         stagger: 0.05,
+  //         ease: "power2.out",
+  //       },
+  //     );
+  //   }, containerRef);
+  //   return () => ctx.revert();
+  // }, [selectedUsers]);
 
   // Auto Scroll
   useEffect(() => {
@@ -236,14 +243,14 @@ const MessageArea = ({ onBack }) => {
           </span>
         </div>
 
-        {messages.map((msg) =>
-          msg.sender === "me" ? (
-            <SenderMessage key={msg.id} msg={msg} />
+        {messages?.map((msg) =>
+          msg.sender === userData._id ? (
+            <SenderMessage key={msg._id} image={msg.image} msg={msg} />
           ) : (
             <ReceiverMessage
-              key={msg.id}
+              key={msg._id}
               msg={msg}
-              userImage={selectedUsers.image}
+              image={msg.image}
             />
           ),
         )}
