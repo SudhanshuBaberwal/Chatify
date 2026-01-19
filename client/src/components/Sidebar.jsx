@@ -5,17 +5,17 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import setOtherUsers, { setSelectedUsers } from "../redux/userSlice";
 import setUserData from "../redux/userSlice";
-import otherUsers from "../redux/userSlice";
-
-const Sidebar = ({ users, selectedUser, onSelect }) => {
-  const { userData, otherUsers } = useSelector((state) => state.user);
+const Sidebar = () => {
+  const { userData, otherUsers, selectedUsers, onlineUsers } = useSelector(
+    (state) => state.user,
+  );
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const filtered = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  // const filtered = users.filter((u) =>
+  //   u.name.toLowerCase().includes(search.toLowerCase()),
+  // );
 
   const handleLogout = async (e) => {
     e.preventDefault();
@@ -30,9 +30,6 @@ const Sidebar = ({ users, selectedUser, onSelect }) => {
       console.log(error);
     }
   };
-  // console.log(otherUsers.users);
-  // console.log(Array.isArray(otherUsers.users));
-
   return (
     <div className="flex flex-col h-full w-full">
       {/* Header */}
@@ -87,7 +84,7 @@ const Sidebar = ({ users, selectedUser, onSelect }) => {
 
         {Array.isArray(otherUsers?.users) &&
           otherUsers.users.map((u) => {
-            const isActive = selectedUser?.id === u._id;
+            const isActive = selectedUsers?.id === onlineUsers;
             return (
               <div
                 key={u._id}

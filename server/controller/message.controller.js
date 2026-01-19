@@ -1,6 +1,8 @@
 import Conversation from "../models/conversation.model.js";
 import uploadOnCloudinary from "../config/cloudinary.js";
 import Message from "../models/message.model.js";
+import { getReceiverSocketId } from "../socket/socket.js";
+import { io } from "../socket/socket.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -32,6 +34,12 @@ export const sendMessage = async (req, res) => {
       conversation.messages.push(newMessage._id);
       await conversation.save();
     }
+
+    const receiverSocketId = getReceiverSocketId(receiver)
+    if (receiverSocketId){
+      io.to(receiverSocketId).emit("newMessage" , newMessage)
+    }
+
     return res.status(200).json({ success: true }, newMessage);
   } catch (error) {
     console.log("Error in sendMessage Function : ", error);
@@ -42,25 +50,7 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-// export const getMessage = async (req, res) => {
-//   try {
-//     let sender = req.id;
-//     let { receiver } = req.params;
 
-//     let conversation = await Conversation.findOne({
-//       participants: { $all: [sender, receiver] },
-//     }).populate("messages");
-//     if (!conversation) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Conversation Not Found" });
-//     }
-//     return res.status(200).json({ success: true }, conversation.messages);
-//   } catch (error) {
-//     console.log("Error in getMessage Controller : ", error);
-//     return res.status(500).json({ success: false, message: error.message });
-//   }
-// };
 
 export const getMessage = async (req, res) => {
   try {

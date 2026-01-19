@@ -6,10 +6,13 @@ import Messagerouter from "./routes/messageRoutes.js";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.routes.js";
 import cors from "cors";
+import { app, server } from "./socket/socket.js";
 
 dotenv.config();
 
-const app = express();
+// const app = express();
+// Now use app from Socker IO
+
 app.use(
   cors({
     origin: process.env.ORIGIN_URL,
@@ -31,6 +34,6 @@ app.use("/api/user", userRouter);
 
 // connectDB
 connectDataBase();
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server running on port : ${port}`);
 });

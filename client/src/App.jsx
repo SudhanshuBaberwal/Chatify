@@ -1,18 +1,45 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import { Toaster } from "react-hot-toast";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import useGetCurrentUser from "./customHooks/getCurrentUser";
 import getOtherUsers from "./customHooks/getOtherUsers";
+import { io } from "socket.io-client";
+import { setOnlineUsers, setSocket } from "./redux/userSlice";
 
 const App = () => {
   useGetCurrentUser();
   getOtherUsers();
-  let { userData } = useSelector((state) => state.user);
+  let { userData, socket, onlineUsers } = useSelector((state) => state.user);
+  let dispatch = useDispatch();
+
+  useEffect(() => {
+    if (userData) {
+      const socketio = io("http://localhost:3000", {
+        query: {
+          userId: userData?.user._id,
+        },
+      });
+      dispatch(setSocket(socketio));
+      socketio.on("getOnlineUsers", (users) => {
+        dispatch(setOnlineUsers(users));
+      });
+      return () => {
+        socketio.close("getOnlineUsers");
+      };
+    }
+    else{
+      if (socket){
+        socket.close()
+        dispatch(setSocket(null))
+      }
+    }
+  }, [userData]);
+
   return (
     <>
       <Toaster />

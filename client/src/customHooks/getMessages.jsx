@@ -6,6 +6,7 @@ import { setMessages } from "../redux/message.Slice";
 const getMessages = () => {
   let dispatch = useDispatch();
   let { userData, selectedUsers } = useSelector((state) => state.user);
+  let {messages} = useSelector(state => state.message)
   // console.log(selectedUsers);
   useEffect(() => {
     const fetchMessages = async () => {
@@ -29,6 +30,6 @@ const getMessages = () => {
     };
 
     fetchMessages();
-  }, [selectedUsers, userData]);
+  }, [selectedUsers, userData , messages]);
 };
 export default getMessages;

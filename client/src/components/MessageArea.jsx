@@ -13,42 +13,16 @@ import {
   X, // Import X icon for closing the preview
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import EmojiPicker from "emoji-picker-react";
+import EmojiPicker from "emoji-picker-react"
 import { setMessages } from "../redux/message.Slice";
 // --- IMPORT NEW COMPONENTS ---
 import SenderMessage from "./SenderMessage";
 import ReceiverMessage from "./ReceiverMessage";
 
-const INITIAL_DATA = [
-  {
-    id: 1,
-    text: "Analyzing the grid patterns now.",
-    sender: "them",
-    time: "10:30 AM",
-  },
-  {
-    id: 2,
-    text: "Can you adjust the bloom intensity on the rendering engine?",
-    sender: "me",
-    time: "10:32 AM",
-  },
-  {
-    id: 3,
-    text: "Affirmative. Compiling the shaders. It should look cleaner.",
-    sender: "them",
-    time: "10:33 AM",
-  },
-  {
-    id: 4,
-    text: "Send me the preview when done.",
-    sender: "me",
-    time: "10:35 AM",
-  },
-];
 
 const MessageArea = ({ onBack }) => {
   // Redux
-  const { selectedUsers, userData } = useSelector((state) => state.user);
+  const { selectedUsers, userData , socket } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   // console.log(selectedUsers._id)
 
@@ -96,18 +70,6 @@ const MessageArea = ({ onBack }) => {
     // Allow sending if there is text OR an image
     if (!input.trim() && !frontendImage) return;
 
-    // 1. Update UI immediately (Optimistic UI)
-    // const newMessage = {
-    //   id: Date.now(),
-    //   text: input,
-    //   sender: "me",
-    //   time: "Now",
-    //   image: frontendImage,
-    // };
-
-    // setMessages((prev) => [...prev, newMessage]);
-
-    // 2. Clear Input States
     setInput("");
     setShowPicker(false);
     clearImage(); // Clear the image preview
@@ -154,24 +116,24 @@ const MessageArea = ({ onBack }) => {
   };
 
   // Animation on User Change
-  // useLayoutEffect(() => {
-  //   if (!selectedUsers) return;
-  //   const ctx = gsap.context(() => {
-  //     gsap.fromTo(
-  //       ".chat-bubble",
-  //       { opacity: 0, y: 20, scale: 0.95 },
-  //       {
-  //         opacity: 1,
-  //         y: 0,
-  //         scale: 1,
-  //         duration: 0.4,
-  //         stagger: 0.05,
-  //         ease: "power2.out",
-  //       },
-  //     );
-  //   }, containerRef);
-  //   return () => ctx.revert();
-  // }, [selectedUsers]);
+  useLayoutEffect(() => {
+    if (!selectedUsers) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".chat-bubble",
+        { opacity: 0, y: 20, scale: 0.95 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.4,
+          stagger: 0.05,
+          ease: "power2.out",
+        },
+      );
+    }, containerRef);
+    return () => ctx.revert();
+  }, [selectedUsers]);
 
   // Auto Scroll
   useEffect(() => {
@@ -194,6 +156,14 @@ const MessageArea = ({ onBack }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showPicker]);
+
+
+  useEffect(() => {
+    socket.on("newMessage" , (mess) => {
+      dispatch(setMessages([...messages,mess]))
+    })
+    return () => socket.off("newMessage")
+  } , [messages,setMessages])
 
   if (!selectedUsers) {
     return (
