@@ -3,7 +3,7 @@ import { gsap } from "gsap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useDispatch,  } from "react-redux";
-import { setUserData } from "../redux/userSlice";
+import { setSelectedUsers, setUserData } from "../redux/userSlice";
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
@@ -24,6 +24,7 @@ export default function LoginPage() {
         { withCredentials: true }
       );
       dispatch(setUserData(result.data))
+      dispatch(setSelectedUsers(null))
       setEmail("")
       setPassword("")
       setLoading(false)

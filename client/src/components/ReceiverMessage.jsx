@@ -1,7 +1,9 @@
 import React from "react";
+import { useSelector } from "react-redux";
 
 const ReceiverMessage = ({ msg, image }) => {
   if (!msg && !image) return null;
+  let {userData , selectedUsers} = useSelector(state => state.user)
 
   return (
     <div className="flex w-full justify-start chat-bubble group mb-4">
@@ -9,7 +11,7 @@ const ReceiverMessage = ({ msg, image }) => {
       {/* Avatar (Desktop Only) */}
       <div className="hidden md:block shrink-0 mr-3 self-end mb-6 opacity-70">
         <img
-          src={senderImage || "https://via.placeholder.com/40"}
+          src={selectedUsers.image || "https://via.placeholder.com/40"}
           className="w-8 h-8 rounded-full object-cover ring-2 ring-white/5"
           alt="Sender"
         />

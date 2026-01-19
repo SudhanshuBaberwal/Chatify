@@ -46,12 +46,20 @@ const INITIAL_DATA = [
   },
 ];
 
-const MessageArea = ({onBack}) => {
-  
+const MessageArea = ({ onBack }) => {
   // Redux
-  const { selectedUsers , userData } = useSelector((state) => state.user);
+  const { selectedUsers, userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   // console.log(selectedUsers._id)
+
+  if (!userData?.user._id) {
+  return (
+    <div className="flex flex-1 items-center justify-center text-white/40">
+      Loading chat...
+    </div>
+  );
+}
+
 
   // State
   // const [messages, setMessages] = useState(INITIAL_DATA);
@@ -117,7 +125,13 @@ const MessageArea = ({onBack}) => {
         { withCredentials: true },
       );
       // console.log(res.data.messages)
-      dispatch(setMessages([...messages, res.data]));
+      dispatch(
+        setMessages([
+          ...(Array.isArray(messages) ? messages : []),
+          res.data.message ?? res.data,
+        ]),
+      );
+
       setInput("");
       setFrontendImage(null);
       setBackendImage(null);
@@ -243,17 +257,14 @@ const MessageArea = ({onBack}) => {
           </span>
         </div>
 
-        {messages?.map((msg) =>
-          msg.sender === userData._id ? (
-            <SenderMessage key={msg._id} image={msg.image} msg={msg} />
-          ) : (
-            <ReceiverMessage
-              key={msg._id}
-              msg={msg}
-              image={msg.image}
-            />
-          ),
-        )}
+        {Array.isArray(messages) &&
+          messages.map((msg) =>
+            msg.sender === userData.user._id ? (
+              <SenderMessage key={msg._id} image={msg.image} msg={msg.message} />
+            ) : (
+              <ReceiverMessage key={msg._id} image={msg.image} msg={msg.message} />
+            ),
+          )}
 
         <div ref={scrollRef} />
       </div>

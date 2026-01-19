@@ -6,7 +6,7 @@ export const sendMessage = async (req, res) => {
   try {
     const { message } = req.body;
     const sender = req.id;
-    const { receiver } = req.params;
+    const receiver = req.params.receiver;
     let image;
 
     if (req.file) {
@@ -42,26 +42,54 @@ export const sendMessage = async (req, res) => {
   }
 };
 
+// export const getMessage = async (req, res) => {
+//   try {
+//     let sender = req.id;
+//     let { receiver } = req.params;
+
+//     let conversation = await Conversation.findOne({
+//       participants: { $all: [sender, receiver] },
+//     }).populate("messages");
+//     if (!conversation) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Conversation Not Found" });
+//     }
+//     return res.status(200).json({ success: true }, conversation.messages);
+//   } catch (error) {
+//     console.log("Error in getMessage Controller : ", error);
+//     return res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
 export const getMessage = async (req, res) => {
   try {
-    let sender = req.id;
-    let { receiver } = req.params;
+    const senderId = req.id;              // logged-in user
+    const receiverId = req.params.receiver;     // selected user
+    // console.log(senderId)
+    // console.log(receiverId)
 
-    let conversation = await Conversation.findOne({
-      participants: { $all: [sender, receiver] },
+    const conversation = await Conversation.findOne({
+      participants: { $all: [senderId, receiverId] }
     }).populate("messages");
+
     if (!conversation) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Conversation Not Found" });
+      return res.status(200).json({
+        success: true,
+        messages: []   // ✅ VERY IMPORTANT
+      });
     }
-    // return res.status(200).json({ success: true }, conversation.messages);
+
     return res.status(200).json({
       success: true,
-      messages: conversation.messages,
+      messages: conversation.messages // ✅ SEND ARRAY
     });
+
   } catch (error) {
-    console.log("Error in getMessage Controller : ", error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.log("getMessages error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
