@@ -1,5 +1,5 @@
 import transporter from "./nodemailer.js";
-import { PASSWORD_RESET_SUCCESS_TEMPLATE, VERIFICATION_EMAIL_TEMPLATE, WELCOME_EMAIL } from "./emailTemplates.js";
+import { PASSWORD_RESET_SUCCESS_TEMPLATE, VERIFICATION_EMAIL_TEMPLATE, WELCOME_EMAIL , PASSWORD_RESET_REQUEST_TEMPLATE } from "./emailTemplates.js";
 
 export const verificationEmail = async (userEmail, code) => {
   try {
@@ -30,7 +30,7 @@ export const passwordResetEmail = async (url, email) => {
       from: "24bcs147@iiitdwd.ac.in",
       to: email,
       subject: "Password Reset Email",
-      html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetURL),
+      html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", url),
     });
     console.log("Password Reset Email sent successfully");
   } catch (error) {

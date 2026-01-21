@@ -24,10 +24,11 @@ export default function SignupPage() {
         { fullname, email, password },
         { withCredentials: true }
       );
-      dispatch(setUserData(result.data))
+      navigate("/verify-email" , {state : email})
+      // dispatch(setUserData(result.data))
       setEmail("")
       setPassword("")
-      setLoading(false)
+      // setLoading(false)
     } catch (error) {
       console.log(error);
       setLoading(false)

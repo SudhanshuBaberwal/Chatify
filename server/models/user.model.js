@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
     },
     descripition : {
         type : String,
-        required : true,
+        // required : true,
         default : "Hey ! i am using Chatify"
     },
     passwordResetToken : String,

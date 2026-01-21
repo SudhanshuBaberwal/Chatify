@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Search, Command, MoreVertical, Bell, LogOut } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import setOtherUsers, { setSelectedUsers } from "../redux/userSlice";
 import setUserData from "../redux/userSlice";
+import toast from "react-hot-toast"
 const Sidebar = () => {
   const { userData, otherUsers, selectedUsers, onlineUsers } = useSelector(
     (state) => state.user,
@@ -17,16 +18,25 @@ const Sidebar = () => {
   //   u.name.toLowerCase().includes(search.toLowerCase()),
   // );
 
+  useEffect(() => {
+    if (!userData){
+      navigate("/login")
+    }
+  } , [userData])
+
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
       const result = await axios.get("http://localhost:3000/api/auth/logout", {
         withCredentials: true,
       });
+      console.log(result)
       dispatch(setUserData(null));
       dispatch(setOtherUsers(null));
-      navigate("/login");
+      toast.success(result.data.message)
+      // navigate("/login");
     } catch (error) {
+      // toast.error(error.response?.data?.message)
       console.log(error);
     }
   };
@@ -37,7 +47,7 @@ const Sidebar = () => {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <span className="font-bold text-lg">A</span>
+              <span className="font-bold text-lg">{userData.user.fullname[0]}</span>
             </div>
             <div>
               <h2 className="font-bold text-lg tracking-tight">Chatify</h2>
@@ -179,8 +189,8 @@ const Sidebar = () => {
           </div>
           <LogOut
             onClick={handleLogout}
-            size={16}
-            className="text-white/30 group-hover:text-white"
+            size={24}
+            className="text-white/30 group-hover:text-red-500"
           />
         </div>
       </div>

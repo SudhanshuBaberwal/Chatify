@@ -10,6 +10,9 @@ import useGetCurrentUser from "./customHooks/getCurrentUser";
 import getOtherUsers from "./customHooks/getOtherUsers";
 import { io } from "socket.io-client";
 import { setOnlineUsers, setSocket } from "./redux/userSlice";
+import EmailVerification from "./utils/EmailVerification";
+import ForgotPassword from "./utils/ForgotPassword";
+import ResetPassword from "./utils/ResetPassword";
 
 const App = () => {
   useGetCurrentUser();
@@ -31,16 +34,15 @@ const App = () => {
       return () => {
         socketio.close("getOnlineUsers");
       };
-    }
-    else{
-      if (socket){
-        socket.close()
-        dispatch(setSocket(null))
+    } else {
+      if (socket) {
+        socket.close();
+        dispatch(setSocket(null));
       }
     }
   }, [userData]);
 
-  return (
+   return (
     <>
       <Toaster />
       <Routes>
@@ -60,6 +62,9 @@ const App = () => {
           path="/profile"
           element={userData ? <Profile /> : <Navigate to="/signup" />}
         />
+        <Route path="/verify-email" element={<EmailVerification />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </>
   );

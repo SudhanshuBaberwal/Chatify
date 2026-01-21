@@ -12,6 +12,7 @@ export default function LoginPage() {
   let [password, setPassword] = useState("");
   let [loading , setLoading] = useState("")
   let dispatch = useDispatch()
+  // let navigate = useNavigate()
   
 
   const handleLogin = async (e) => {
@@ -163,6 +164,7 @@ export default function LoginPage() {
                 </label>
                 <button
                   type="button"
+                  onClick={() => navigate("/forgot-password")}
                   className="text-[10px] uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
                   Forgot?
