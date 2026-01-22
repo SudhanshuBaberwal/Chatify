@@ -50,6 +50,7 @@ const ResetPassword = () => {
 
       console.log(result);
       toast.success(result.data.message || "Password reset successful!");
+      setTimeout(() => navigate("/login"), 2000);
       setLoading(false);
 
       // 3. Success & Redirect
