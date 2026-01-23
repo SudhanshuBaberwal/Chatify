@@ -6,15 +6,15 @@ import axios from "axios";
 import { setUserData } from "../redux/userSlice";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+// 1. Import the Icon
+import { ArrowLeft } from "lucide-react";
 
 const Profile = () => {
   // --- REDUX & STATE (Your Backend Logic) ---
   const { userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
-  // Initial State setup based on your data structure
   const [name, setName] = useState(userData?.user?.fullname || "User Name");
-  // Note: Keeping 'descripition' typo to match your backend model
   const [descripition, setDescripition] = useState(userData?.descripition || ""); 
   const [imagePreview, setImagePreview] = useState(
     userData?.user?.image ||
@@ -22,7 +22,9 @@ const Profile = () => {
   );
   const [backendImage, setBackendImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  let navigate = useNavigate()
+  
+  // Navigation Hook
+  let navigate = useNavigate();
 
   // --- REFS ---
   const mountRef = useRef(null); 
@@ -45,9 +47,9 @@ const Profile = () => {
     try {
       const formData = new FormData();
       formData.append("name", name);
-      formData.append("descripition", descripition); // Matching your key
+      formData.append("descripition", descripition);
       if (backendImage) {
-        formData.append("image", backendImage); // Matching your key
+        formData.append("image", backendImage);
       }     
       
       const result = await axios.put(
@@ -61,7 +63,6 @@ const Profile = () => {
       toast.success("Profile Updated Successfully")
       navigate("/")
 
-      // Success Animation (Shake effect)
       gsap.to(formRef.current, { x: 5, duration: 0.1, yoyo: true, repeat: 3 });
 
     } catch (error) {
@@ -70,11 +71,10 @@ const Profile = () => {
     }
   };
 
-  // --- 1. THREE.JS BACKGROUND (Floating Bubbles) ---
+  // --- 1. THREE.JS BACKGROUND ---
   useEffect(() => {
     const currentMount = mountRef.current;
     
-    // Scene Setup
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x050505, 0.02);
 
@@ -86,13 +86,11 @@ const Profile = () => {
     renderer.setPixelRatio(window.devicePixelRatio);
     if (currentMount) currentMount.appendChild(renderer.domElement);
 
-    // Bubbles Group
     const bubblesGroup = new THREE.Group();
     scene.add(bubblesGroup);
 
     const geometry = new THREE.PlaneGeometry(3, 1.5);
     
-    // Texture
     const createBubbleTexture = () => {
       const canvas = document.createElement("canvas");
       canvas.width = 128;
@@ -155,9 +153,15 @@ const Profile = () => {
   // --- 2. GSAP ENTRANCE ---
   useEffect(() => {
     const tl = gsap.timeline();
-    tl.fromTo(".glass-panel", 
+    // 2. Added animation for the back button
+    tl.fromTo(".back-btn", 
+      { opacity: 0, x: -20 },
+      { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }
+    )
+    .fromTo(".glass-panel", 
       { opacity: 0, y: 50, scale: 0.95 },
-      { opacity: 1, y: 0, scale: 1, duration: 1, ease: "power3.out" }
+      { opacity: 1, y: 0, scale: 1, duration: 1, ease: "power3.out" },
+      "-=0.3"
     )
     .fromTo(".form-input", 
       { opacity: 0, x: -20 }, 
@@ -193,6 +197,14 @@ const Profile = () => {
       className="relative w-full h-screen bg-[#050505] overflow-hidden flex items-center justify-center font-sans text-white"
       onMouseMove={handleMouseMove} 
     >
+      {/* 3. NEW: Back Button */}
+      <button 
+        onClick={() => navigate("/")}
+        className="back-btn absolute top-6 left-6 z-50 p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all backdrop-blur-md group"
+      >
+        <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+      </button>
+
       {/* BACKGROUND */}
       <div ref={mountRef} className="absolute inset-0 z-0 pointer-events-none" />
 
