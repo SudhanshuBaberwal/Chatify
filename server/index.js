@@ -10,8 +10,10 @@ import { app, server } from "./socket/socket.js";
 
 dotenv.config();
 
+
 // const app = express();
 // Now use app from Socker IO
+
 
 app.use(
   cors({
@@ -23,16 +25,16 @@ app.use(express.json());
 app.use(cookieParser());
 const port = process.env.PORT || 5000;
 
-// auth Routes
+
 app.use("/api/auth", authRouter);
 
-// message Routes
+
 app.use("/api/message", Messagerouter);
 
-// user Routes
+
 app.use("/api/user", userRouter);
 
-// connectDB
+
 connectDataBase();
 server.listen(port, () => {
   console.log(`Server running on port : ${port}`);
