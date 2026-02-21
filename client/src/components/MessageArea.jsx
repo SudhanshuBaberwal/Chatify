@@ -58,7 +58,7 @@ const MessageArea = ({ onBack }) => {
 
   if (!userData?.user?._id) {
     return (
-      <div className="flex flex-1 items-center justify-center text-white/40">
+      <div className="flex flex-1 items-center justify-center text-white/40 bg-cyan-50">
         Loading chat...
       </div>
     );
