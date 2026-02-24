@@ -291,6 +291,9 @@ const MessageArea = ({ onBack }) => {
           </div>
         )}
 
+
+
+
         <form
           onSubmit={handleSend}
           className="relative flex items-center gap-2 p-1.5 md:p-2 bg-[#121212] md:bg-[#050505]/60 backdrop-blur-xl border border-white/10 rounded-[24px]"
@@ -352,6 +355,8 @@ const MessageArea = ({ onBack }) => {
           </button>
         </form>
       </div>
+
+      
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
